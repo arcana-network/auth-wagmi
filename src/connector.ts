@@ -37,8 +37,6 @@ export class ArcanaConnector extends Connector {
   }
 
   async connect(): Promise<Required<ConnectorData>> {
-    console.log("At connect");
-
     try {
       this.provider.on("accountsChanged", this.onAccountsChanged);
       this.provider.on("chainChanged", this.onChainChanged);
@@ -69,13 +67,11 @@ export class ArcanaConnector extends Connector {
         provider: this.provider,
       };
     } catch (err) {
-      console.log({ err });
       throw new UserRejectedRequestError("Something went wrong");
     }
   }
 
   async getSigner() {
-    console.log("At getSigner");
     const provider = new ethers.providers.Web3Provider(
       await this.getProvider()
     );
@@ -84,8 +80,6 @@ export class ArcanaConnector extends Connector {
   }
 
   async getAccount() {
-    console.log("At getAccount");
-
     const accounts = await this.provider.request({
       method: "eth_accounts",
     });
