@@ -23,7 +23,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "@arcana/auth": "^0.3.0",
+    "@arcana/auth": "^1.0.0",
     "@wagmi/core": "^0.7.9"
   },
   "devDependencies": {
