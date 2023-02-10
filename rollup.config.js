@@ -10,16 +10,13 @@ export default {
       file: packageJson.main,
       format: "cjs",
     },
-    {
-      file: packageJson.module,
-      format: "esm",
-    },
   ],
   plugins: [
     resolve(),
     commonjs(),
     typescript({
       tsconfig: "./tsconfig.json",
+      declaration: false,
     }),
   ],
 };
