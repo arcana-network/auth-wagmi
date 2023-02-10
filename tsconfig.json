@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "declarationDir": "./types",
+    "declarationDir": "types",
     "removeComments": true ,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

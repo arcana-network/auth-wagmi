@@ -5,7 +5,6 @@
   "author": "makylfang",
   "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/esm/index.js",
   "types": "types/index.d.ts",
   "files": [
     "dist",
@@ -24,7 +23,7 @@
   },
   "dependencies": {
     "@arcana/auth": "^1.0.0",
-    "@wagmi/core": "^0.7.9"
+    "@wagmi/core": "0.9.5"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^23.0.3",
