@@ -7,7 +7,7 @@ import { ArcanaConnector } from "@arcana/auth-wagmi"
 
 const connector = new ArcanaConnector({
     options: {
-        appId: `${arcana_app_address}`,
+        clientId: `${arcana_client_id}`,
     }
 })
 
@@ -26,7 +26,7 @@ import { ArcanaConnector } from "@arcana/auth-wagmi"
 const connector = new ArcanaConnector({
   chains: [mainnet, optimism, polygon],
   options: {
-    appId: `${arcana_app_address}`,
+    clientId: `${arcana_client_id}`,
   },
 })
 ```
@@ -39,7 +39,7 @@ Options to be passed to Arcana auth SDK.
 const connector = new ArcanaConnector({
   chains: [mainnet, optimism, polygon],
   options: {
-    appId: `${arcana_app_address}`,
+    clientId: `${arcana_client_id}`,
     theme: 'light',            // Defaults to 'dark'
     alwaysVisible: false,      // Defaults to true
     position: 'left'           // Defaults to 'right'
