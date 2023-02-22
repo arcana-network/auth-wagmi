@@ -13,7 +13,8 @@ import { AuthProvider, EthereumProvider, CHAIN } from "@arcana/auth";
 import { ethers } from "ethers";
 
 type AuthOptions = {
-  appId: ConstructorParameters<typeof AuthProvider>[0];
+  appId?: ConstructorParameters<typeof AuthProvider>[0];
+  clientId?: ConstructorParameters<typeof AuthProvider>[0];
 } & ConstructorParameters<typeof AuthProvider>[1];
 
 export class ArcanaConnector extends Connector {
@@ -25,12 +26,18 @@ export class ArcanaConnector extends Connector {
 
   constructor(config: { chains?: Chain[]; options: AuthOptions }) {
     super(config);
-    this.auth = new AuthProvider(config.options.appId, {
+    let id = config.options?.appId
+      ? config.options?.appId
+      : config.options?.clientId;
+    if (!id) {
+      throw new Error("appAddress or clientId required for arcana auth.");
+    }
+
+    this.auth = new AuthProvider(id, {
       network: config.options.network,
       theme: config.options.theme || "dark",
       chainConfig: {
         chainId: CHAIN.ETHEREUM_MAINNET,
-        rpcUrl: "",
       },
     });
     this.provider = this.auth.provider;
