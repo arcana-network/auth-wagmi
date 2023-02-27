@@ -2,7 +2,7 @@ import "../styles/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 
 import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { polygon, mainnet } from "@wagmi/core/chains";
+import { polygon, mainnet } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { connectors } from "../utils/wallet";
