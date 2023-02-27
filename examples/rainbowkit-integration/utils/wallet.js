@@ -13,7 +13,7 @@ export const ArcanaRainbowConnector = ({ chains }) => {
       const connector = new ArcanaConnector({
         chains,
         options: {
-          appId: "20B0B836C92D91Ba2059d6Fa76073Ac431A56B64",
+          clientId: "xar_test_b2dde12aad64eb35d72b2c80926338e178b1fa3f",
         },
       });
       return {
