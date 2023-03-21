@@ -1,13 +1,22 @@
 # Arcana auth wagmi connector
 
+
+## Install
+
+```sh
+yarn add @arcana/auth-wagmi @arcana/auth
+```
+
 ## Usage
 
 ```ts
 import { ArcanaConnector } from "@arcana/auth-wagmi"
+import { AuthProvider } from "@arcana/auth"
 
+const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
 const connector = new ArcanaConnector({
     options: {
-        clientId: `${arcana_client_id}`,
+        auth,
     }
 })
 
@@ -22,27 +31,14 @@ Chains supported by app.
 ```ts
 import { mainnet, optimism, polygon } from '@wagmi/core/chains'
 import { ArcanaConnector } from "@arcana/auth-wagmi"
- 
+import { AuthProvider } from "@arcana/auth"
+
+const auth = new AuthProvider(`${arcana_client_id}`)
+
 const connector = new ArcanaConnector({
   chains: [mainnet, optimism, polygon],
   options: {
-    clientId: `${arcana_client_id}`,
-  },
-})
-```
-
-## options
-
-Options to be passed to Arcana auth SDK.
-
-```ts
-const connector = new ArcanaConnector({
-  chains: [mainnet, optimism, polygon],
-  options: {
-    clientId: `${arcana_client_id}`,
-    theme: 'light',            // Defaults to 'dark'
-    alwaysVisible: false,      // Defaults to true
-    position: 'left'           // Defaults to 'right'
+    auth,
   },
 })
 ```
