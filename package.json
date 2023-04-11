@@ -1,6 +1,6 @@
 {
   "name": "@arcana/auth-wagmi",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Wagmi connector for Arcana Auth",
   "author": "makylfang",
   "license": "MIT",
@@ -22,7 +22,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
-    "@wagmi/core": "0.9.5"
+    "@wagmi/core": "^0.10.9"
   },
   "devDependencies": {
     "@arcana/auth": "^1.0.3",

@@ -12,29 +12,30 @@ import {
 import type { AuthProvider, EthereumProvider } from "@arcana/auth";
 import { ethers } from "ethers";
 
+const isServer = typeof window === "undefined";
+
 export class ArcanaConnector extends Connector {
+  ready = !isServer;
   readonly id = "arcana-auth";
   readonly name = "Arcana Auth";
-  readonly ready = true;
   private auth: AuthProvider;
-  private provider: EthereumProvider;
+  private provider?: EthereumProvider;
 
   constructor(config: { chains?: Chain[]; options: { auth: AuthProvider } }) {
     super(config);
     this.auth = config.options.auth;
-    this.provider = this.auth.provider;
   }
 
   async connect(): Promise<Required<ConnectorData>> {
     try {
       await this.auth.init();
-      this.provider = await this.getProvider();
+      const provider = await this.getProvider();
 
       if (await this.auth.isLoggedIn()) {
         const chainId = await this.getChainId();
         const unsupported = this.isChainUnsupported(chainId);
         if (!this.auth.connected) {
-          await new Promise((resolve) => this.provider.on("connect", resolve));
+          await new Promise((resolve) => provider.on("connect", resolve));
         }
         return {
           provider: this.provider,
@@ -45,10 +46,8 @@ export class ArcanaConnector extends Connector {
           account: await this.getAccount(),
         };
       }
+      this.addEventListeners();
       await this.auth.connect();
-      this.provider.on("accountsChanged", this.onAccountsChanged);
-      this.provider.on("chainChanged", this.onChainChanged);
-      this.provider.on("disconnect", this.onDisconnect);
       const chainId = await this.getChainId();
       const unsupported = this.isChainUnsupported(chainId);
       return {
@@ -70,7 +69,8 @@ export class ArcanaConnector extends Connector {
   }
 
   async getAccount() {
-    const accounts = await this.provider.request({
+    const provider = await this.getProvider();
+    const accounts = await provider.request({
       method: "eth_accounts",
     });
     return ethers.utils.getAddress((accounts as string[])[0]);
@@ -82,8 +82,9 @@ export class ArcanaConnector extends Connector {
 
   async isAuthorized() {
     try {
-      const account = await this.getAccount();
-      return !!account;
+      await this.auth.init();
+      const isAuthorized = await this.auth.isLoggedIn();
+      return isAuthorized;
     } catch {
       return false;
     }
@@ -152,9 +153,7 @@ export class ArcanaConnector extends Connector {
 
   async disconnect() {
     await this.auth.logout();
-    this.provider.removeListener("accountsChanged", this.onAccountsChanged);
-    this.provider.removeListener("chainChanged", this.onChainChanged);
-    this.provider.removeListener("disconnect", this.onDisconnect);
+    this.removeEventListeners();
   }
 
   async getProvider() {
@@ -163,5 +162,19 @@ export class ArcanaConnector extends Connector {
     }
 
     return this.provider;
+  }
+
+  private addEventListeners() {
+    this.auth.provider.on("accountsChanged", this.onAccountsChanged);
+    this.auth.provider.on("chainChanged", this.onChainChanged);
+    this.auth.provider.on("disconnect", this.onDisconnect);
+  }
+  private removeEventListeners() {
+    this.auth.provider.removeListener(
+      "accountsChanged",
+      this.onAccountsChanged
+    );
+    this.auth.provider.removeListener("chainChanged", this.onChainChanged);
+    this.auth.provider.removeListener("disconnect", this.onDisconnect);
   }
 }
