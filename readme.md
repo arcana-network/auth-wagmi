@@ -1,4 +1,4 @@
-# Arcana auth wagmi connector
+# Arcana Auth Wagmi Connector
 
 
 ## Install
@@ -24,9 +24,9 @@ const connector = new ArcanaConnector({
 
 ## Configuration
 
-## chains
+## Add Chains
 
-Chains supported by app.
+Configure the chains that will show up in the Arcana wallet within your app's context. In the example below, the chains configured are: Optimism, Polygon and Ethereum Mainnet.
 
 ```ts
 import { mainnet, optimism, polygon } from '@wagmi/core/chains'
@@ -43,4 +43,4 @@ const connector = new ArcanaConnector({
 })
 ```
 
-Remaining integration documentation can be found at [wagmi](https://wagmi.sh/core/getting-started) docs.
+For more details on connectors and integrating your app with Wagmi, see [Wagmi documentation](https://wagmi.sh/core/getting-started).

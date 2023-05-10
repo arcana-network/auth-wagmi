@@ -1,6 +1,6 @@
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
-
+import { getAuthProvider } from "./getArcanaAuth";
 import { ArcanaConnector } from "@arcana/auth-wagmi";
 
 export const ArcanaRainbowConnector = ({ chains }) => {
@@ -13,8 +13,8 @@ export const ArcanaRainbowConnector = ({ chains }) => {
       const connector = new ArcanaConnector({
         chains,
         options: {
-          clientId: "xar_test_b2dde12aad64eb35d72b2c80926338e178b1fa3f",
-        },
+	  auth: getAuthProvider(),
+        }
       });
       return {
         connector,
