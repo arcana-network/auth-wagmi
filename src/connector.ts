@@ -14,16 +14,30 @@ import { ethers } from "ethers";
 
 const isServer = typeof window === "undefined";
 
+interface LoginType {
+  provider: string;
+  email?: string;
+}
+
 export class ArcanaConnector extends Connector {
   ready = !isServer;
-  readonly id = "arcana-auth";
+  readonly id = "arcana";
   readonly name = "Arcana Auth";
   private auth: AuthProvider;
+  private loginType?: LoginType;
   private provider?: EthereumProvider;
 
-  constructor(config: { chains?: Chain[]; options: { auth: AuthProvider } }) {
+  constructor(config: {
+    chains?: Chain[];
+    options: { auth: AuthProvider; login: LoginType };
+  }) {
     super(config);
     this.auth = config.options.auth;
+    this.loginType = config.options.login;
+  }
+
+  setLogin(val: LoginType) {
+    this.loginType = val;
   }
 
   async connect(): Promise<Required<ConnectorData>> {
@@ -47,7 +61,19 @@ export class ArcanaConnector extends Connector {
         };
       }
       this.addEventListeners();
-      await this.auth.connect();
+      if (this.loginType?.provider) {
+        if (this.loginType.provider == "passwordless") {
+          if (this.loginType.email) {
+            await this.auth.loginWithLink(this.loginType.email);
+          } else {
+            throw new Error("passwordless requires `email` in params");
+          }
+        } else {
+          await this.auth.loginWithSocial(this.loginType.provider);
+        }
+      } else {
+        await this.auth.connect();
+      }
       const chainId = await this.getChainId();
       const unsupported = this.isChainUnsupported(chainId);
       return {
