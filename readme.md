@@ -9,6 +9,8 @@ yarn add @arcana/auth-wagmi @arcana/auth
 
 ## Usage
 
+With connect modal
+
 ```ts
 import { ArcanaConnector } from "@arcana/auth-wagmi"
 import { AuthProvider } from "@arcana/auth"
@@ -19,7 +21,29 @@ const connector = new ArcanaConnector({
         auth,
     }
 })
+```
 
+With custom UI
+
+```ts
+import { ArcanaConnector } from "@arcana/auth-wagmi"
+import { AuthProvider } from "@arcana/auth"
+
+const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
+const connector = new ArcanaConnector({
+    options: {
+        auth,
+        login: {
+          provider: "google"
+        } // Optional, specify here or in setLogin function
+    }
+})
+
+// OR
+
+connector.setLogin({
+  provider: "google"
+})
 ```
 
 ## Configuration

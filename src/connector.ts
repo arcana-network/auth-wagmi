@@ -29,7 +29,7 @@ export class ArcanaConnector extends Connector {
 
   constructor(config: {
     chains?: Chain[];
-    options: { auth: AuthProvider; login: LoginType };
+    options: { auth: AuthProvider; login?: LoginType };
   }) {
     super(config);
     this.auth = config.options.auth;
