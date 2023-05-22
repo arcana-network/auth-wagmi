@@ -9,53 +9,48 @@ import {
   UserRejectedRequestError,
   normalizeChainId,
 } from "@wagmi/core";
-import { AuthProvider, EthereumProvider, CHAIN } from "@arcana/auth";
+import type { AuthProvider, EthereumProvider } from "@arcana/auth";
 import { ethers } from "ethers";
 
-type AuthOptions = {
-  appId?: ConstructorParameters<typeof AuthProvider>[0];
-  clientId?: ConstructorParameters<typeof AuthProvider>[0];
-} & ConstructorParameters<typeof AuthProvider>[1];
+const isServer = typeof window === "undefined";
+
+interface LoginType {
+  provider: string;
+  email?: string;
+}
 
 export class ArcanaConnector extends Connector {
-  readonly id = "arcana-auth";
+  ready = !isServer;
+  readonly id = "arcana";
   readonly name = "Arcana Auth";
-  readonly ready = true;
   private auth: AuthProvider;
-  private provider: EthereumProvider;
+  private loginType?: LoginType;
+  private provider?: EthereumProvider;
 
-  constructor(config: { chains?: Chain[]; options: AuthOptions }) {
+  constructor(config: {
+    chains?: Chain[];
+    options: { auth: AuthProvider; login?: LoginType };
+  }) {
     super(config);
-    let id = config.options?.appId
-      ? config.options?.appId
-      : config.options?.clientId;
-    if (!id) {
-      throw new Error("appAddress or clientId required for arcana auth.");
-    }
+    this.auth = config.options.auth;
+    this.loginType = config.options.login;
+  }
 
-    this.auth = new AuthProvider(id, {
-      network: config.options.network,
-      theme: config.options.theme || "dark",
-      chainConfig: {
-        chainId: CHAIN.ETHEREUM_MAINNET,
-      },
-    });
-    this.provider = this.auth.provider;
+  setLogin(val: LoginType) {
+    this.loginType = val;
   }
 
   async connect(): Promise<Required<ConnectorData>> {
     try {
-      this.provider.on("accountsChanged", this.onAccountsChanged);
-      this.provider.on("chainChanged", this.onChainChanged);
-      this.provider.on("disconnect", this.onDisconnect);
-
       await this.auth.init();
-      this.provider = await this.getProvider();
+      const provider = await this.getProvider();
 
       if (await this.auth.isLoggedIn()) {
         const chainId = await this.getChainId();
         const unsupported = this.isChainUnsupported(chainId);
-        await new Promise((resolve) => this.provider.on("connect", resolve));
+        if (!this.auth.connected) {
+          await new Promise((resolve) => provider.on("connect", resolve));
+        }
         return {
           provider: this.provider,
           chain: {
@@ -65,7 +60,20 @@ export class ArcanaConnector extends Connector {
           account: await this.getAccount(),
         };
       }
-      await this.auth.connect();
+      this.addEventListeners();
+      if (this.loginType?.provider) {
+        if (this.loginType.provider == "passwordless") {
+          if (this.loginType.email) {
+            await this.auth.loginWithLink(this.loginType.email);
+          } else {
+            throw new Error("passwordless requires `email` in params");
+          }
+        } else {
+          await this.auth.loginWithSocial(this.loginType.provider);
+        }
+      } else {
+        await this.auth.connect();
+      }
       const chainId = await this.getChainId();
       const unsupported = this.isChainUnsupported(chainId);
       return {
@@ -87,7 +95,8 @@ export class ArcanaConnector extends Connector {
   }
 
   async getAccount() {
-    const accounts = await this.provider.request({
+    const provider = await this.getProvider();
+    const accounts = await provider.request({
       method: "eth_accounts",
     });
     return ethers.utils.getAddress((accounts as string[])[0]);
@@ -99,8 +108,9 @@ export class ArcanaConnector extends Connector {
 
   async isAuthorized() {
     try {
-      const account = await this.getAccount();
-      return !!account;
+      await this.auth.init();
+      const isAuthorized = await this.auth.isLoggedIn();
+      return isAuthorized;
     } catch {
       return false;
     }
@@ -169,9 +179,7 @@ export class ArcanaConnector extends Connector {
 
   async disconnect() {
     await this.auth.logout();
-    this.provider.removeListener("accountsChanged", this.onAccountsChanged);
-    this.provider.removeListener("chainChanged", this.onChainChanged);
-    this.provider.removeListener("disconnect", this.onDisconnect);
+    this.removeEventListeners();
   }
 
   async getProvider() {
@@ -180,5 +188,19 @@ export class ArcanaConnector extends Connector {
     }
 
     return this.provider;
+  }
+
+  private addEventListeners() {
+    this.auth.provider.on("accountsChanged", this.onAccountsChanged);
+    this.auth.provider.on("chainChanged", this.onChainChanged);
+    this.auth.provider.on("disconnect", this.onDisconnect);
+  }
+  private removeEventListeners() {
+    this.auth.provider.removeListener(
+      "accountsChanged",
+      this.onAccountsChanged
+    );
+    this.auth.provider.removeListener("chainChanged", this.onChainChanged);
+    this.auth.provider.removeListener("disconnect", this.onDisconnect);
   }
 }
