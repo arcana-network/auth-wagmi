@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "name": "Auth Wagmi SDK Reference Guide",
+  "out": "htmldocs",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "includeVersion": true,
+  "footerDate": true,
+  "footerTime": true,
+  "plugin": ["typedoc-plugin-extras"]
+}
