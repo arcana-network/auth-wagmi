@@ -2,15 +2,18 @@ import {
   Connector,
   Chain,
   ConnectorData,
+  ChainNotConfiguredError,
+} from "@wagmi/core";
+import {
+  createWalletClient,
+  custom,
+  getAddress,
+  toHex,
+  UserRejectedRequestError,
   SwitchChainError,
   RpcError,
-  ChainNotConfiguredError,
-  AddChainError,
-  UserRejectedRequestError,
-  normalizeChainId,
-} from "@wagmi/core";
+} from "viem";
 import type { AuthProvider, EthereumProvider } from "@arcana/auth";
-import { ethers } from "ethers";
 
 const isServer = typeof window === "undefined";
 
@@ -44,7 +47,7 @@ export class ArcanaConnector extends Connector {
     try {
       await this.auth.init();
       const provider = await this.getProvider();
-
+      this.emit("message", { type: "connecting" });
       if (await this.auth.isLoggedIn()) {
         const chainId = await this.getChainId();
         const unsupported = this.isChainUnsupported(chainId);
@@ -52,7 +55,6 @@ export class ArcanaConnector extends Connector {
           await new Promise((resolve) => provider.on("connect", resolve));
         }
         return {
-          provider: this.provider,
           chain: {
             id: chainId,
             unsupported,
@@ -79,19 +81,14 @@ export class ArcanaConnector extends Connector {
       return {
         account: await this.getAccount(),
         chain: { id: chainId, unsupported },
-        provider: this.provider,
       };
     } catch (err) {
-      throw new UserRejectedRequestError("Something went wrong");
+      if (err instanceof Error) {
+        throw new UserRejectedRequestError(err);
+      } else {
+        throw err;
+      }
     }
-  }
-
-  async getSigner() {
-    const provider = new ethers.providers.Web3Provider(
-      await this.getProvider()
-    );
-    const signer = provider.getSigner();
-    return signer;
   }
 
   async getAccount() {
@@ -99,7 +96,7 @@ export class ArcanaConnector extends Connector {
     const accounts = await provider.request({
       method: "eth_accounts",
     });
-    return ethers.utils.getAddress((accounts as string[])[0]);
+    return getAddress((accounts as string[])[0]);
   }
 
   async getChainId() {
@@ -123,7 +120,7 @@ export class ArcanaConnector extends Connector {
     }
 
     const provider = await this.getProvider();
-    const id = ethers.utils.hexValue(chainId);
+    const id = toHex(chainId);
 
     try {
       await provider.request({
@@ -150,12 +147,20 @@ export class ArcanaConnector extends Connector {
         } catch (addError) {
           // Check if user rejected request
           // else
-          throw new AddChainError();
+          if (addError instanceof Error) {
+            throw new SwitchChainError(addError);
+          } else {
+            throw error;
+          }
         }
       }
       // Check if user rejected request
       // else
-      throw new SwitchChainError(error);
+      if (error instanceof Error) {
+        throw new SwitchChainError(error);
+      } else {
+        throw error;
+      }
     }
   }
 
@@ -163,7 +168,7 @@ export class ArcanaConnector extends Connector {
     if (accounts.length === 0) this.emit("disconnect");
     else
       this.emit("change", {
-        account: ethers.utils.getAddress(accounts[0] as string),
+        account: getAddress(accounts[0] as string),
       });
   };
 
@@ -180,6 +185,16 @@ export class ArcanaConnector extends Connector {
   async disconnect() {
     await this.auth.logout();
     this.removeEventListeners();
+  }
+
+  async getWalletClient(config?: { chainId?: number }) {
+    const account = await this.getAccount();
+    const chain = this.chains.find((x) => x.id === config?.chainId);
+    return createWalletClient({
+      account,
+      chain,
+      transport: custom(await this.getProvider()),
+    });
   }
 
   async getProvider() {
@@ -203,4 +218,14 @@ export class ArcanaConnector extends Connector {
     this.auth.provider.removeListener("chainChanged", this.onChainChanged);
     this.auth.provider.removeListener("disconnect", this.onDisconnect);
   }
+}
+
+function normalizeChainId(chainId: string | number): number {
+  if (typeof chainId === "string")
+    return Number.parseInt(
+      chainId,
+      chainId.trim().substring(0, 2) === "0x" ? 16 : 10
+    );
+  if (typeof chainId === "bigint") return Number(chainId);
+  return chainId;
 }
