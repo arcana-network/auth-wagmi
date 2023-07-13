@@ -1,21 +1,21 @@
+import type { EthereumProvider, AuthProvider } from "@arcana/auth";
+
 import {
+  UserRejectedRequestError,
+  createWalletClient,
+  SwitchChainError,
+  getAddress,
+  RpcError,
+  custom,
+  toHex
+} from "viem";
+import {
+  ChainNotConfiguredError,
+  ConnectorData,
+  WalletClient,
   Connector,
   Chain,
-  ConnectorData,
-  ChainNotConfiguredError,
 } from "@wagmi/core";
-import {
-  createWalletClient,
-  custom,
-  getAddress,
-  toHex,
-  UserRejectedRequestError,
-  SwitchChainError,
-  RpcError,
-} from "viem";
-import type { AuthProvider, EthereumProvider } from "@arcana/auth";
-
-const isServer = typeof window === "undefined";
 
 interface LoginType {
   provider: string;
@@ -23,24 +23,53 @@ interface LoginType {
 }
 
 export class ArcanaConnector extends Connector {
-  ready = !isServer;
-  readonly id = "arcana";
-  readonly name = "Arcana Auth";
-  private auth: AuthProvider;
-  private loginType?: LoginType;
   private provider?: EthereumProvider;
+  private loginType?: LoginType;
+  private auth: AuthProvider;
+  protected onAccountsChanged = (accounts: string[]) => {
+    if (accounts.length === 0) this.emit("disconnect");
+    else
+      this.emit("change", {
+        account: getAddress(accounts[0] as string),
+      });
+  };
+  protected onChainChanged = (chainId: number | string) => {
+    const id = normalizeChainId(chainId);
+    const unsupported = this.isChainUnsupported(id);
+    this.emit("change", { chain: { unsupported, id } });
+  };
+  protected onDisconnect = () => {
+    this.emit("disconnect");
+  };
+
+  ready = !(typeof window === "undefined");
+
+  readonly name = "Arcana Auth";
+
+  readonly id = "arcana";
 
   constructor(config: {
-    chains?: Chain[];
     options: { auth: AuthProvider; login?: LoginType };
+    chains?: Chain[];
   }) {
     super(config);
     this.auth = config.options.auth;
     this.loginType = config.options.login;
   }
 
-  setLogin(val: LoginType) {
-    this.loginType = val;
+  private removeEventListeners() {
+    this.auth.provider.removeListener(
+      "accountsChanged",
+      this.onAccountsChanged
+    );
+    this.auth.provider.removeListener("chainChanged", this.onChainChanged);
+    this.auth.provider.removeListener("disconnect", this.onDisconnect);
+  }
+
+  private addEventListeners() {
+    this.auth.provider.on("accountsChanged", this.onAccountsChanged);
+    this.auth.provider.on("chainChanged", this.onChainChanged);
+    this.auth.provider.on("disconnect", this.onDisconnect);
   }
 
   async connect(): Promise<Required<ConnectorData>> {
@@ -79,8 +108,8 @@ export class ArcanaConnector extends Connector {
       const chainId = await this.getChainId();
       const unsupported = this.isChainUnsupported(chainId);
       return {
-        account: await this.getAccount(),
         chain: { id: chainId, unsupported },
+        account: await this.getAccount(),
       };
     } catch (err) {
       if (err instanceof Error) {
@@ -91,32 +120,10 @@ export class ArcanaConnector extends Connector {
     }
   }
 
-  async getAccount() {
-    const provider = await this.getProvider();
-    const accounts = await provider.request({
-      method: "eth_accounts",
-    });
-    return getAddress((accounts as string[])[0]);
-  }
-
-  async getChainId() {
-    return normalizeChainId(this.auth.chainId);
-  }
-
-  async isAuthorized() {
-    try {
-      await this.auth.init();
-      const isAuthorized = await this.auth.isLoggedIn();
-      return isAuthorized;
-    } catch {
-      return false;
-    }
-  }
-
   async switchChain(chainId: number): Promise<Chain> {
     const chain = this.chains.find((x) => x.id === chainId);
     if (!chain) {
-      throw new ChainNotConfiguredError({ chainId, connectorId: this.id });
+      throw new ChainNotConfiguredError({ connectorId: this.id, chainId });
     }
 
     const provider = await this.getProvider();
@@ -132,16 +139,16 @@ export class ArcanaConnector extends Connector {
       if ((error as RpcError).code === 4902) {
         try {
           await provider.request({
-            method: "wallet_addEthereumChain",
             params: [
               {
-                chainId: id,
-                chainName: chain.name,
-                nativeCurrency: chain.nativeCurrency,
                 rpcUrls: [chain.rpcUrls.public ?? chain.rpcUrls.default],
                 blockExplorerUrls: this.getBlockExplorerUrls(chain),
+                nativeCurrency: chain.nativeCurrency,
+                chainName: chain.name,
+                chainId: id,
               },
             ],
+            method: "wallet_addEthereumChain",
           });
           return chain;
         } catch (addError) {
@@ -164,37 +171,32 @@ export class ArcanaConnector extends Connector {
     }
   }
 
-  protected onAccountsChanged = (accounts: string[]) => {
-    if (accounts.length === 0) this.emit("disconnect");
-    else
-      this.emit("change", {
-        account: getAddress(accounts[0] as string),
-      });
-  };
-
-  protected onChainChanged = (chainId: number | string) => {
-    const id = normalizeChainId(chainId);
-    const unsupported = this.isChainUnsupported(id);
-    this.emit("change", { chain: { id, unsupported } });
-  };
-
-  protected onDisconnect = () => {
-    this.emit("disconnect");
-  };
-
-  async disconnect() {
-    await this.auth.logout();
-    this.removeEventListeners();
-  }
-
-  async getWalletClient(config?: { chainId?: number }) {
+  async getWalletClient(config: { chainId?: number } = {}): Promise<WalletClient> {
     const account = await this.getAccount();
-    const chain = this.chains.find((x) => x.id === config?.chainId);
+    const chain = this.chains.find((x) => x.id === config.chainId) ?? this.chains[0]
     return createWalletClient({
+      transport: custom(await this.getProvider()),
       account,
       chain,
-      transport: custom(await this.getProvider()),
     });
+  }
+
+  async getAccount() {
+    const provider = await this.getProvider();
+    const accounts = await provider.request({
+      method: "eth_accounts",
+    });
+    return getAddress((accounts as string[])[0]);
+  }
+
+  async isAuthorized() {
+    try {
+      await this.auth.init();
+      const isAuthorized = await this.auth.isLoggedIn();
+      return isAuthorized;
+    } catch {
+      return false;
+    }
   }
 
   async getProvider() {
@@ -205,22 +207,20 @@ export class ArcanaConnector extends Connector {
     return this.provider;
   }
 
-  private addEventListeners() {
-    this.auth.provider.on("accountsChanged", this.onAccountsChanged);
-    this.auth.provider.on("chainChanged", this.onChainChanged);
-    this.auth.provider.on("disconnect", this.onDisconnect);
+  async disconnect() {
+    await this.auth.logout();
+    this.removeEventListeners();
   }
-  private removeEventListeners() {
-    this.auth.provider.removeListener(
-      "accountsChanged",
-      this.onAccountsChanged
-    );
-    this.auth.provider.removeListener("chainChanged", this.onChainChanged);
-    this.auth.provider.removeListener("disconnect", this.onDisconnect);
+
+  async getChainId() {
+    return normalizeChainId(this.auth.chainId);
+  }
+  setLogin(val: LoginType) {
+    this.loginType = val;
   }
 }
 
-function normalizeChainId(chainId: string | number): number {
+function normalizeChainId(chainId: number | string): number {
   if (typeof chainId === "string")
     return Number.parseInt(
       chainId,
