@@ -1,5 +1,6 @@
 # Arcana Auth Wagmi Connector
 
+For wagmi >= 1.0.0, for wagmi < 1.0.0 use @arcana/auth@1.x.y
 
 ## Install
 
