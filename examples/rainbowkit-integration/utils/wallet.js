@@ -1,34 +1,34 @@
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import { metaMaskWallet } from "@rainbow-me/rainbowkit/wallets";
-import { getAuthProvider } from "./getArcanaAuth";
 import { ArcanaConnector } from "@arcana/auth-wagmi";
+
+import { getAuthProvider } from "./getArcanaAuth";
 import { newArcanaLogo } from "./logo";
 
 export const ArcanaRainbowConnector = ({ chains }) => {
   return {
-    id: "arcana-auth",
-    name: "Login with Email/Social",
-    iconUrl: newArcanaLogo,
-    iconBackground: "#101010",
     createConnector: () => {
       const connector = new ArcanaConnector({
-        chains,
         options: {
-	  auth: getAuthProvider(),
-        }
+          auth: getAuthProvider(),
+        },
+        chains,
       });
       return {
         connector,
       };
     },
+    name: "[Arcana] Login with Email/Social",
+    iconBackground: "#101010",
+    iconUrl: newArcanaLogo,
+    id: "arcana-auth",
   };
 };
 
 const connectors = (chains) =>
   connectorsForWallets([
     {
+      wallets: [ArcanaRainbowConnector({ chains })],
       groupName: "Recommended",
-      wallets: [ArcanaRainbowConnector({ chains }), metaMaskWallet({ chains })],
     },
   ]);
 

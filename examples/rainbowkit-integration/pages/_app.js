@@ -1,26 +1,27 @@
-import "../styles/globals.css";
+import { configureChains, createConfig, WagmiConfig } from "wagmi";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { publicProvider } from "wagmi/providers/public";
+import { polygon, mainnet } from "wagmi/chains";
 import "@rainbow-me/rainbowkit/styles.css";
 
-import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { polygon, mainnet } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
-import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { connectors } from "../utils/wallet";
+import "../styles/globals.css";
 
-const { chains, provider } = configureChains(
+const { publicClient, chains } = configureChains(
   [mainnet, polygon],
   [publicProvider()]
 );
 
-const wagmiClient = createClient({
-  autoConnect: true,
+
+const wagmiConfig = createConfig({
   connectors: connectors(chains),
-  provider,
+  autoConnect: true,
+  publicClient,
 });
 
 export default function App({ Component, pageProps }) {
   return (
-    <WagmiConfig client={wagmiClient}>
+    <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
         <Component {...pageProps} />
       </RainbowKitProvider>

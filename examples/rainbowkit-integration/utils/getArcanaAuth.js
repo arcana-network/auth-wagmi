@@ -5,7 +5,7 @@ let auth = null;
 export const getAuthProvider = () => {
   if (!auth) {
     auth = new AuthProvider(
-      "xar_dev_19527cdf585cd31d0bd06bfc1b008accea781404"
+      "xar_test_b2dde12aad64eb35d72b2c80926338e178b1fa3f"
     );
   }
   return auth;
