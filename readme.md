@@ -1,6 +1,8 @@
 # Arcana Auth Wagmi Connector
 
-For wagmi >= 1.0.0, for wagmi < 1.0.0 use @arcana/auth@1.x.y
+For wagmi < 1.0.0 use `@arcana/auth-wagmi@1.y.z`
+
+For wagmi >= 1.0.0, use `@arcana/auth-wagmi@2.y.z`
 
 ## Install
 
@@ -10,7 +12,7 @@ yarn add @arcana/auth-wagmi @arcana/auth
 
 ## Usage
 
-With connect modal
+With plug n play connect modal
 
 ```ts
 import { ArcanaConnector } from "@arcana/auth-wagmi"
@@ -34,9 +36,11 @@ const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
 const connector = new ArcanaConnector({
     options: {
         auth,
+        // specify here or in setLogin function as shown below
         login: {
           provider: "google"
-        } // Optional, specify here or in setLogin function
+          // email: 'abc@example.com' // if provider is `passwordless`
+        } 
     }
 })
 
@@ -44,6 +48,7 @@ const connector = new ArcanaConnector({
 
 connector.setLogin({
   provider: "google"
+  // email: 'abc@example.com' // if provider is `passwordless`
 })
 ```
 
