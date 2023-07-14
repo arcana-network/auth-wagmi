@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@arcana/auth": "^1.0.3",
+    "@arcana/auth": "^1.0.6",
     "@arcana/auth-wagmi": "^2.0.0",
     "@next/font": "13.1.1",
     "@rainbow-me/rainbowkit": "^1.0.6",
