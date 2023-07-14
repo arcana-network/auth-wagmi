@@ -1,0 +1,13 @@
+{
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:perfectionist/recommended-line-length"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint",
+        "perfectionist"
+    ],
+    "root": true
+}
