@@ -7,7 +7,7 @@ import {
   getAddress,
   RpcError,
   custom,
-  toHex
+  toHex,
 } from "viem";
 import {
   ChainNotConfiguredError,
@@ -40,7 +40,7 @@ export class ArcanaConnector extends Connector {
         account: getAddress(accounts[0] as string),
       });
   };
-  
+
   protected onDisconnect = () => {
     this.emit("disconnect");
   };
@@ -61,8 +61,8 @@ export class ArcanaConnector extends Connector {
   }
 
   private addEventListeners() {
-    if(!this.listenersAdded) {
-      this.listenersAdded = true
+    if (!this.listenersAdded) {
+      this.listenersAdded = true;
       this.auth.provider.on("accountsChanged", this.onAccountsChanged);
       this.auth.provider.on("chainChanged", this.onChainChanged);
       this.auth.provider.on("disconnect", this.onDisconnect);
@@ -78,9 +78,9 @@ export class ArcanaConnector extends Connector {
     this.auth.provider.removeListener("disconnect", this.onDisconnect);
   }
 
-  
-
-  async connect(): Promise<Required<ConnectorData>> {
+  async connect({ chainId }: { chainId?: number } = {}): Promise<
+    Required<ConnectorData>
+  > {
     try {
       this.addEventListeners();
       await this.auth.init();
@@ -88,15 +88,20 @@ export class ArcanaConnector extends Connector {
       const provider = await this.getProvider();
       this.emit("message", { type: "connecting" });
       if (await this.auth.isLoggedIn()) {
-        const chainId = await this.getChainId();
-        const unsupported = this.isChainUnsupported(chainId);
         if (!this.auth.connected) {
           await new Promise((resolve) => provider.on("connect", resolve));
         }
+        let id = await this.getChainId();
+        let unsupported = this.isChainUnsupported(id);
+        if (chainId && id !== chainId) {
+          const chain = await this.switchChain(chainId);
+          id = chain.id;
+          unsupported = this.isChainUnsupported(id);
+        }
         return {
           chain: {
-            id: chainId,
             unsupported,
+            id: id,
           },
           account: await this.getAccount(),
         };
@@ -114,11 +119,16 @@ export class ArcanaConnector extends Connector {
       } else {
         await this.auth.connect();
       }
-      const chainId = await this.getChainId();
-      const unsupported = this.isChainUnsupported(chainId);
+      let id = await this.getChainId();
+      let unsupported = this.isChainUnsupported(id);
+      if (chainId && id !== chainId) {
+        const chain = await this.switchChain(chainId);
+        id = chain.id;
+        unsupported = this.isChainUnsupported(id);
+      }
       return {
-        chain: { id: chainId, unsupported },
         account: await this.getAccount(),
+        chain: { unsupported, id },
       };
     } catch (err) {
       if (err instanceof Error) {
@@ -180,9 +190,12 @@ export class ArcanaConnector extends Connector {
     }
   }
 
-  async getWalletClient(config: { chainId?: number } = {}): Promise<WalletClient> {
+  async getWalletClient(
+    config: { chainId?: number } = {}
+  ): Promise<WalletClient> {
     const account = await this.getAccount();
-    const chain = this.chains.find((x) => x.id === config.chainId) ?? this.chains[0]
+    const chain =
+      this.chains.find((x) => x.id === config.chainId) ?? this.chains[0];
     return createWalletClient({
       transport: custom(await this.getProvider()),
       account,
@@ -224,6 +237,7 @@ export class ArcanaConnector extends Connector {
   async getChainId() {
     return normalizeChainId(this.auth.chainId);
   }
+
   setLogin(val: LoginType) {
     this.loginType = val;
   }
