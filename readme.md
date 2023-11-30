@@ -1,76 +1,78 @@
-# Arcana Auth Wagmi Connector
+<p align="center">
+<a href="#start"><img height="30rem" src="https://raw.githubusercontent.com/arcana-network/branding/main/an_logo_light_temp.png"/></a>
+<h2 align="center"> <a href="https://arcana.network/">Arcana Network Auth-Wagmi SDK </a></h2>
+</p>
+<br/>
+<p id="banner" align="center">
+<br/>
+<a title="MIT License" href="https://github.com/arcana-network/license/blob/main/LICENSE.md"><img src="https://img.shields.io/badge/license-MIT-blue"/></a>
+<a title="Beta release" href="https://github.com/arcana-network/auth-wagmi/releases"><img src="https://img.shields.io/github/v/release/arcana-network/auth-wagmi?style=flat-square&color=28A745"/></a>
+<a title="Twitter" href="https://twitter.com/ArcanaNetwork"><img alt="Twitter URL" src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2FArcanaNetwork"/></a>
+<a title="CodeCov" href="https://codecov.io/gh/arcana-network/auth-wagmi"> 
+ <img src="https://codecov.io/gh/arcana-network/auth-wagmi/branch/dev/graph/badge.svg?token=KmdjEs3enL"/></a>
+</p><p id="start" align="center">
+<a href="https://docs.beta.arcana.network/"><img src="https://raw.githubusercontent.com/arcana-network/branding/main/an_banner_docs.png" alt="Arcana Auth-Wagmi SDK"/></a>
+</p>
 
-For wagmi < 1.0.0 use `@arcana/auth-wagmi@1.y.z`
+# What is Auth-Wagmi SDK?
 
-For wagmi >= 1.0.0, use `@arcana/auth-wagmi@2.y.z`
+Auth-Wagmi SDK is a companion SDK to [Arcana Auth](https://github.com/arcana-network/auth). It is required for enabling social logins in dApps that use Wagmi wallet connector.
 
-## Install
+Devs can create custom login UI or use the built-in plug-and-play auth to onboard users via social login. Arcana Auth offers an embedded, non-custodial Arcana wallet for authenticated users enabling them to sign blockchain transactions. Devs can choose to use the built-in wallet UI or create custom wallet UI.
+
+# 💪 Key Features
+
+<p>🔒 &nbsp; Enable Social Login in Wagmi Apps</p>
+<p>🗝️ &nbsp; Plug and play user authentication</p>
+<p>🔒 &nbsp; Onboard dApp users via social, passwordless login</p>
+<p>🔒 &nbsp; Embedded Web3 Arcana wallet that can be branded and configured as per the application needs </p>
+<p>⛓️ &nbsp; Sign blockchain transactions, deploy and interact with smart contracts, manage native and custom tokens, view and manage NFTs, send and receive tokens</p>
+<p>⚙️ &nbsp; Configure blockchain transaction signing user experience using wallet visibility modes</p>
+
+# 🏗️ Installation
+
+To use the Auth-Wagmi SDK, devs must install and integrate the app with both, the Arcana Auth SDK as well as the Auth-Wagmi SDK.
+
+## npm
 
 ```sh
-yarn add @arcana/auth-wagmi @arcana/auth
+npm install --save @arcana/auth @arcana/auth-wagmi
 ```
 
-## Usage
+## yarn
 
-With plug n play connect modal
-
-```ts
-import { ArcanaConnector } from "@arcana/auth-wagmi"
-import { AuthProvider } from "@arcana/auth"
-
-const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
-const connector = new ArcanaConnector({
-    options: {
-        auth,
-    }
-})
+```sh
+yarn add @arcana/auth @arcana/auth-wagmi
 ```
 
-With custom UI
+### CDN
 
-```ts
-import { ArcanaConnector } from "@arcana/auth-wagmi"
-import { AuthProvider } from "@arcana/auth"
-
-const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
-const connector = new ArcanaConnector({
-    options: {
-        auth,
-        // specify here or in setLogin function as shown below
-        login: {
-          provider: "google"
-          // email: 'abc@example.com' // if provider is `passwordless`
-        } 
-    }
-})
-
-// OR
-
-connector.setLogin({
-  provider: "google"
-  // email: 'abc@example.com' // if provider is `passwordless`
-})
+```html
+<script src="https://cdn.jsdelivr.net/npm/@arcana/auth"></script>
+<script src="https://cdn.jsdelivr.net/npm/@arcana/auth-wagmi"></script>
 ```
 
-## Configuration
-
-## Add Chains
-
-Configure the chains that will show up in the Arcana wallet within your app's context. In the example below, the chains configured are: Optimism, Polygon and Ethereum Mainnet.
-
-```ts
-import { mainnet, optimism, polygon } from '@wagmi/core/chains'
-import { ArcanaConnector } from "@arcana/auth-wagmi"
-import { AuthProvider } from "@arcana/auth"
-
-const auth = new AuthProvider(`${arcana_client_id}`)
-
-const connector = new ArcanaConnector({
-  chains: [mainnet, optimism, polygon],
-  options: {
-    auth,
-  },
-})
+```html
+<script src="https://unpkg.com/@arcana/auth"></script>
+<script src="https://unpkg.com/@arcana/auth-wagmi"></script>
 ```
 
-For more details on connectors and integrating your app with Wagmi, see [Wagmi documentation](https://wagmi.sh/core/getting-started).
+# 📋 Prerequisites
+
+Before you can start using the Arcana Auth SDK and Arcana Auth-Wagmi SDK in dApps, you need to register your dApp using [Arcana Developer Dashboard](https://dashboard.arcana.network/).
+
+A unique **App Address** will be assigned to your dApp and you need the same to initialize the Arcana Auth SDK.
+
+# 📚 Documentation
+
+Check out [Arcana Network documentation](https://docs.arcana.network/) and Auth-Wagmi SDK [Usage Guide](./usage.md].  Also see [Auth-Wagmi Quick Start Guide](https://docs.arcana.network/quick-start/wagmi-quick-start.html).
+
+# 💡 Support
+
+For any support or integration-related queries, contact [Arcana support team](mailto:support@arcana.network).
+
+# ℹ️ License
+
+Arcana Auth SDK is distributed under the [MIT License](https://fossa.com/blog/open-source-licenses-101-mit-license/).
+
+For details see [Arcana License](https://github.com/arcana-network/license/blob/main/LICENSE.md).
