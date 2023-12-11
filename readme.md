@@ -65,7 +65,7 @@ A unique **Client ID** will be assigned to your dApp and you need the same to in
 
 # 📚 Documentation
 
-Check out [Arcana Network documentation](https://docs.arcana.network/) and Auth-Wagmi SDK [Usage Guide](./usage.md].  Also see [Auth-Wagmi Quick Start Guide](https://docs.arcana.network/quick-start/wagmi-quick-start.html).
+Check out [Arcana Network documentation](https://docs.arcana.network/) and Auth-Wagmi SDK [Usage Guide](./usage.md).  Also see [Auth-Wagmi Quick Start Guide](https://docs.arcana.network/quick-start/wagmi-quick-start.html).
 
 # 💡 Support
 
