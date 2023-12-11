@@ -61,7 +61,7 @@ yarn add @arcana/auth @arcana/auth-wagmi
 
 Before you can start using the Arcana Auth SDK and Arcana Auth-Wagmi SDK in dApps, you need to register your dApp using [Arcana Developer Dashboard](https://dashboard.arcana.network/).
 
-A unique **App Address** will be assigned to your dApp and you need the same to initialize the Arcana Auth SDK.
+A unique **Client ID** will be assigned to your dApp and you need the same to initialize the Arcana Auth SDK.
 
 # 📚 Documentation
 
