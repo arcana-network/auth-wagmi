@@ -69,7 +69,7 @@ Check out [Arcana Network documentation](https://docs.arcana.network/) and Auth-
 
 # 💡 Support
 
-For any support or integration-related queries, contact [Arcana support team](mailto:support@arcana.network).
+For any support or integration-related queries, [contact us](https://docs.arcana.network/support). 
 
 # ℹ️ License
 
