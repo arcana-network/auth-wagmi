@@ -16,7 +16,7 @@ interface LoginType {
 
 type ArcanaParams = { loginType: LoginType; auth: AuthProvider };
 
-export function Arcana({ auth, loginType }: ArcanaParams) {
+export function ArcanaConnector({ auth, loginType }: ArcanaParams) {
   let listenersAdded = false;
   let login = loginType;
   return createConnector<EthereumProvider>((config) => ({

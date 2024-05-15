@@ -1,3 +1,3 @@
-import { Arcana } from "./connector";
+import { ArcanaConnector } from "./connector";
 
-export { Arcana };
+export { ArcanaConnector };

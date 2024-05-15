@@ -17,7 +17,7 @@ yarn add @arcana/auth-wagmi @arcana/auth
 With plug n play connect modal
 
 ```ts
-import { Arcana } from "@arcana/auth-wagmi"
+import { ArcanaConnector } from "@arcana/auth-wagmi"
 import { AuthProvider } from "@arcana/auth"
 
 const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
