@@ -1,30 +1,37 @@
-import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { publicProvider } from "wagmi/providers/public";
+import { WagmiProvider, http } from "wagmi";
+import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { polygon, mainnet } from "wagmi/chains";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
 
-import { connectors } from "../utils/wallet";
+import { ArcanaRainbowConnector } from "../utils/wallet";
 import "../styles/globals.css";
 
-const { publicClient, chains } = configureChains(
-  [mainnet, polygon],
-  [publicProvider()]
-);
-
-
-const wagmiConfig = createConfig({
-  connectors: connectors(chains),
-  autoConnect: true,
-  publicClient,
+const wagmiConfig = getDefaultConfig({
+  chains: [mainnet, polygon],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+  },
+  wallets: [
+    {
+      groupName: "Recommended",
+      wallets: [ArcanaRainbowConnector],
+    },
+  ],
+  projectId: "YOUR_PROJECT_ID",
 });
+
+const queryClient = new QueryClient();
 
 export default function App({ Component, pageProps }) {
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <Component {...pageProps} />
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <Component {...pageProps} />
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }

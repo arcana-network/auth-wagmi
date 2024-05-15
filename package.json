@@ -1,6 +1,6 @@
 {
   "name": "@arcana/auth-wagmi",
-  "version": "2.0.0",
+  "version": "3.0.0-beta.1",
   "description": "Wagmi connector for Arcana Auth",
   "author": "makylfang",
   "license": "MIT",
@@ -24,29 +24,27 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@wagmi/core": "^1.3.7"
+    "@wagmi/core": "^2.9.7"
   },
   "devDependencies": {
     "@arcana/auth": "^1.0.6",
     "@rollup/plugin-commonjs": "^23.0.3",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-typescript": "^10.0.1",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "16",
     "@typescript-eslint/eslint-plugin": "^5.59.9",
     "@typescript-eslint/parser": "^5.59.9",
     "eslint": "^8.42.0",
-    "eslint-plugin-perfectionist": "^1.1.2",
     "prettier": "2.8.8",
     "rimraf": "^3.0.2",
     "rollup": "2.79.1",
     "tslib": "^2.4.1",
-    "typedoc": "^0.24.8",
-    "typedoc-plugin-extras": "^2.2.3",
-    "typedoc-plugin-markdown": "^3.12.1",
-    "typescript": "^5.1.3",
-    "viem": "^1.2.14"
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-extras": "^3.0.0",
+    "typedoc-plugin-markdown": "^4.0.1",
+    "typescript": "^5.4.5"
   },
   "peerDependencies": {
-    "viem": "^1.2.14"
+    "viem": "^2.9.7"
   }
 }
