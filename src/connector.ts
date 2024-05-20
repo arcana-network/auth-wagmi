@@ -14,7 +14,7 @@ interface LoginType {
   email?: string;
 }
 
-type ArcanaParams = { loginType: LoginType; auth: AuthProvider };
+type ArcanaParams = { loginType?: LoginType; auth: AuthProvider };
 
 export function ArcanaConnector({ auth, loginType }: ArcanaParams) {
   let listenersAdded = false;
@@ -49,11 +49,7 @@ export function ArcanaConnector({ auth, loginType }: ArcanaParams) {
         }
         if (login?.provider) {
           if (login.provider == "passwordless") {
-            if (login.email) {
-              await auth.loginWithLink(login.email);
-            } else {
-              throw new Error("passwordless requires `email` in params");
-            }
+            throw new Error("passwordless login not supported");
           } else {
             await auth.loginWithSocial(login.provider);
           }

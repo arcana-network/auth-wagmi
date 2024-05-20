@@ -20,7 +20,7 @@ With plug n play connect modal
 import { ArcanaConnector } from "@arcana/auth-wagmi"
 import { AuthProvider } from "@arcana/auth"
 
-const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
+const auth = new AuthProvider(`${arcana_client_id}`)
 const connector = new ArcanaConnector({
   auth,
 })
@@ -32,22 +32,13 @@ With custom UI
 import { ArcanaConnector } from "@arcana/auth-wagmi"
 import { AuthProvider } from "@arcana/auth"
 
-const auth = new AuthProvider(`${arcana_client_id}`) // Singleton
+const auth = new AuthProvider(`${arcana_client_id}`)
 const connector = new ArcanaConnector({
   auth,
   loginType: {
     provider: "google"
-    // email: 'abc@example.com' // if provider is `passwordless`
   } 
-    
-})
-
-// OR
-
-connector.setLogin({
-  provider: "google"
-  // email: 'abc@example.com' // if provider is `passwordless`
 })
 ```
 
-For more details on connectors and integrating your app with Wagmi, see [Wagmi documentation](https://wagmi.sh/core/getting-started).
+For more details on connectors and integrating your app with Wagmi, see [Wagmi documentation](https://wagmi.sh/react/getting-started).
