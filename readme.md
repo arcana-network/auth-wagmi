@@ -21,7 +21,7 @@ import { ArcanaConnector } from "@arcana/auth-wagmi"
 import { AuthProvider } from "@arcana/auth"
 
 const auth = new AuthProvider(`${arcana_client_id}`)
-const connector = new ArcanaConnector({
+const connector = ArcanaConnector({
   auth,
 })
 ```
@@ -33,7 +33,7 @@ import { ArcanaConnector } from "@arcana/auth-wagmi"
 import { AuthProvider } from "@arcana/auth"
 
 const auth = new AuthProvider(`${arcana_client_id}`)
-const connector = new ArcanaConnector({
+const connector = ArcanaConnector({
   auth,
   loginType: {
     provider: "google"
