@@ -2,231 +2,181 @@ import type { EthereumProvider, AuthProvider } from "@arcana/auth";
 
 import {
   UserRejectedRequestError,
-  createWalletClient,
-  SwitchChainError,
   getAddress,
+  SwitchChainError,
   RpcError,
-  custom,
-  toHex
+  toHex,
 } from "viem";
-import {
-  ChainNotConfiguredError,
-  ConnectorData,
-  WalletClient,
-  Connector,
-  Chain,
-} from "@wagmi/core";
+import { ChainNotConfiguredError, createConnector } from "@wagmi/core";
 
 interface LoginType {
   provider: string;
   email?: string;
 }
 
-export class ArcanaConnector extends Connector {
-  private provider?: EthereumProvider;
-  private listenersAdded = false;
-  private loginType?: LoginType;
-  private auth: AuthProvider;
-  protected onChainChanged = (chainId: number | string) => {
-    const id = normalizeChainId(chainId);
-    const unsupported = this.isChainUnsupported(id);
-    this.emit("change", { chain: { unsupported, id } });
-  };
+type ArcanaParams = { loginType?: LoginType; auth: AuthProvider };
 
-  protected onAccountsChanged = (accounts: string[]) => {
-    if (accounts.length === 0) this.emit("disconnect");
-    else
-      this.emit("change", {
-        account: getAddress(accounts[0] as string),
-      });
-  };
-  
-  protected onDisconnect = () => {
-    this.emit("disconnect");
-  };
-
-  ready = !(typeof window === "undefined");
-
-  readonly name = "Arcana Auth";
-
-  readonly id = "arcana";
-
-  constructor(config: {
-    options: { auth: AuthProvider; login?: LoginType };
-    chains?: Chain[];
-  }) {
-    super(config);
-    this.auth = config.options.auth;
-    this.loginType = config.options.login;
-  }
-
-  private addEventListeners() {
-    if(!this.listenersAdded) {
-      this.listenersAdded = true
-      this.auth.provider.on("accountsChanged", this.onAccountsChanged);
-      this.auth.provider.on("chainChanged", this.onChainChanged);
-      this.auth.provider.on("disconnect", this.onDisconnect);
-    }
-  }
-
-  private removeEventListeners() {
-    this.auth.provider.removeListener(
-      "accountsChanged",
-      this.onAccountsChanged
-    );
-    this.auth.provider.removeListener("chainChanged", this.onChainChanged);
-    this.auth.provider.removeListener("disconnect", this.onDisconnect);
-  }
-
-  
-
-  async connect(): Promise<Required<ConnectorData>> {
-    try {
-      this.addEventListeners();
-      await this.auth.init();
-
-      const provider = await this.getProvider();
-      this.emit("message", { type: "connecting" });
-      if (await this.auth.isLoggedIn()) {
-        const chainId = await this.getChainId();
-        const unsupported = this.isChainUnsupported(chainId);
-        if (!this.auth.connected) {
-          await new Promise((resolve) => provider.on("connect", resolve));
+export function ArcanaConnector({ auth, loginType }: ArcanaParams) {
+  let listenersAdded = false;
+  let login = loginType;
+  return createConnector<EthereumProvider>((config) => ({
+    id: "arcana",
+    name: "Arcana",
+    type: "arcana",
+    async connect() {
+      try {
+        if (!listenersAdded) {
+          listenersAdded = true;
+          auth.provider.on("accountsChanged", this.onAccountsChanged);
+          auth.provider.on("chainChanged", this.onChainChanged);
+          auth.provider.on("disconnect", this.onDisconnect);
         }
-        return {
-          chain: {
-            id: chainId,
-            unsupported,
-          },
-          account: await this.getAccount(),
-        };
-      }
-      if (this.loginType?.provider) {
-        if (this.loginType.provider == "passwordless") {
-          if (this.loginType.email) {
-            await this.auth.loginWithLink(this.loginType.email);
+
+        await auth.init();
+        config.emitter.emit("message", { type: "connecting" });
+        if (await auth.isLoggedIn()) {
+          if (!auth.connected) {
+            await new Promise((resolve) =>
+              auth.provider.on("connect", resolve)
+            );
+          }
+          let chain = await this.getChainId();
+
+          return {
+            chainId: chain,
+            accounts: await this.getAccounts(),
+          };
+        }
+        if (login?.provider) {
+          if (login.provider == "passwordless") {
+            throw new Error("passwordless login not supported");
           } else {
-            throw new Error("passwordless requires `email` in params");
+            await auth.loginWithSocial(login.provider);
           }
         } else {
-          await this.auth.loginWithSocial(this.loginType.provider);
+          await auth.connect();
         }
-      } else {
-        await this.auth.connect();
+        const chainId = await this.getChainId();
+        return {
+          chainId,
+          accounts: await this.getAccounts(),
+        };
+      } catch (err) {
+        if (err instanceof Error) {
+          throw new UserRejectedRequestError(err);
+        } else {
+          throw err;
+        }
       }
-      const chainId = await this.getChainId();
-      const unsupported = this.isChainUnsupported(chainId);
-      return {
-        chain: { id: chainId, unsupported },
-        account: await this.getAccount(),
-      };
-    } catch (err) {
-      if (err instanceof Error) {
-        throw new UserRejectedRequestError(err);
-      } else {
-        throw err;
+    },
+
+    async getAccounts() {
+      const provider = await this.getProvider();
+      const accounts = (await provider.request({
+        method: "eth_accounts",
+      })) as string[];
+      return accounts.map((a) => getAddress(a));
+    },
+
+    async disconnect() {
+      await auth.logout();
+      auth.provider.removeListener("accountsChanged", this.onAccountsChanged);
+      auth.provider.removeListener("chainChanged", this.onChainChanged);
+      auth.provider.removeListener("disconnect", this.onDisconnect);
+    },
+
+    async getProvider() {
+      return auth.provider;
+    },
+
+    async setLogin(loginType: LoginType) {
+      login = loginType;
+    },
+
+    async switchChain({ chainId }) {
+      const chain = config.chains.find((x) => x.id === chainId);
+      if (!chain) {
+        throw new ChainNotConfiguredError();
       }
-    }
-  }
 
-  async switchChain(chainId: number): Promise<Chain> {
-    const chain = this.chains.find((x) => x.id === chainId);
-    if (!chain) {
-      throw new ChainNotConfiguredError({ connectorId: this.id, chainId });
-    }
+      const provider = await this.getProvider();
+      const id = toHex(chainId);
 
-    const provider = await this.getProvider();
-    const id = toHex(chainId);
-
-    try {
-      await provider.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: id }],
-      });
-      return chain;
-    } catch (error) {
-      if ((error as RpcError).code === 4902) {
-        try {
-          await provider.request({
-            params: [
-              {
-                rpcUrls: [chain.rpcUrls.public ?? chain.rpcUrls.default],
-                blockExplorerUrls: this.getBlockExplorerUrls(chain),
-                nativeCurrency: chain.nativeCurrency,
-                chainName: chain.name,
-                chainId: id,
-              },
-            ],
-            method: "wallet_addEthereumChain",
-          });
-          return chain;
-        } catch (addError) {
-          // Check if user rejected request
-          // else
-          if (addError instanceof Error) {
-            throw new SwitchChainError(addError);
-          } else {
-            throw error;
+      try {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: id }],
+        });
+        return chain;
+      } catch (error) {
+        if ((error as RpcError).code === 4902) {
+          try {
+            await provider.request({
+              params: [
+                {
+                  rpcUrls: [chain.rpcUrls.public ?? chain.rpcUrls.default],
+                  blockExplorerUrls: "",
+                  nativeCurrency: chain.nativeCurrency,
+                  chainName: chain.name,
+                  chainId: id,
+                },
+              ],
+              method: "wallet_addEthereumChain",
+            });
+            return chain;
+          } catch (addError) {
+            // Check if user rejected request
+            // else
+            if (addError instanceof Error) {
+              throw new SwitchChainError(addError);
+            } else {
+              throw error;
+            }
           }
         }
+        // Check if user rejected request
+        // else
+        if (error instanceof Error) {
+          throw new SwitchChainError(error);
+        } else {
+          throw error;
+        }
       }
-      // Check if user rejected request
-      // else
-      if (error instanceof Error) {
-        throw new SwitchChainError(error);
+    },
+
+    async isAuthorized() {
+      try {
+        await auth.init();
+        const isAuthorized = await auth.isLoggedIn();
+        return isAuthorized;
+      } catch {
+        return false;
+      }
+    },
+
+    async getChainId() {
+      return normalizeChainId(auth.chainId);
+    },
+
+    onChainChanged(id: number | string) {
+      const chainId = normalizeChainId(id);
+      config.emitter.emit("change", { chainId });
+    },
+
+    onAccountsChanged(accounts: string[]) {
+      if (accounts.length === 0) {
+        config.emitter.emit("disconnect");
       } else {
-        throw error;
+        config.emitter.emit("change", {
+          accounts: accounts.map((a) => getAddress(a)),
+        });
       }
-    }
-  }
+    },
 
-  async getWalletClient(config: { chainId?: number } = {}): Promise<WalletClient> {
-    const account = await this.getAccount();
-    const chain = this.chains.find((x) => x.id === config.chainId) ?? this.chains[0]
-    return createWalletClient({
-      transport: custom(await this.getProvider()),
-      account,
-      chain,
-    });
-  }
-
-  async getAccount() {
-    const provider = await this.getProvider();
-    const accounts = await provider.request({
-      method: "eth_accounts",
-    });
-    return getAddress((accounts as string[])[0]);
-  }
-
-  async isAuthorized() {
-    try {
-      await this.auth.init();
-      const isAuthorized = await this.auth.isLoggedIn();
-      return isAuthorized;
-    } catch {
-      return false;
-    }
-  }
-
-  async getProvider() {
-    if (!this.provider) {
-      this.provider = this.auth.provider;
-    }
-
-    return this.provider;
-  }
-
-  async disconnect() {
-    await this.auth.logout();
-    this.removeEventListeners();
-  }
-
-  async getChainId() {
-    return normalizeChainId(this.auth.chainId);
-  }
-  setLogin(val: LoginType) {
-    this.loginType = val;
-  }
+    onDisconnect() {
+      config.emitter.emit("disconnect");
+    },
+  }));
 }
 
 function normalizeChainId(chainId: number | string): number {

@@ -16,7 +16,7 @@ export default {
   output: [
     {
       file: packageJson.main,
-      format: "cjs",
+      format: "esm",
     },
   ],
   input: "src/index.ts",

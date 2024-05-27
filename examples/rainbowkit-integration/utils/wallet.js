@@ -1,35 +1,19 @@
-import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import { ArcanaConnector } from "@arcana/auth-wagmi";
-
 import { getAuthProvider } from "./getArcanaAuth";
 import { newArcanaLogo } from "./logo";
-
-export const ArcanaRainbowConnector = ({ chains }) => {
+import { createConnector } from "wagmi";
+export const ArcanaRainbowConnector = () => {
   return {
-    createConnector: () => {
-      const connector = new ArcanaConnector({
-        options: {
+    createConnector: (walletDetails) =>
+      createConnector((config) => ({
+        ...ArcanaConnector({
           auth: getAuthProvider(),
-        },
-        chains,
-      });
-      return {
-        connector,
-      };
-    },
+        })(config),
+        ...walletDetails,
+      })),
     name: "[Arcana] Login with Email/Social",
     iconBackground: "#101010",
     iconUrl: newArcanaLogo,
     id: "arcana-auth",
   };
 };
-
-const connectors = (chains) =>
-  connectorsForWallets([
-    {
-      wallets: [ArcanaRainbowConnector({ chains })],
-      groupName: "Recommended",
-    },
-  ]);
-
-export { connectors };

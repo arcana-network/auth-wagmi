@@ -18,22 +18,9 @@
 
 Auth-Wagmi SDK is a companion SDK to [Arcana Auth](https://github.com/arcana-network/auth). It is required for enabling social logins in dApps that use Wagmi wallet connector.
 
-Devs can create custom login UI or use the built-in plug-and-play auth to onboard users via social login. Arcana Auth offers an embedded, non-custodial Arcana wallet for authenticated users enabling them to sign blockchain transactions. Devs can choose to use the built-in wallet UI or create custom wallet UI.
+For wagmi >= 2.0.0, use `@arcana/auth-wagmi@3.y.z`
 
-# 💪 Key Features
-
-<p>🔒 &nbsp; Enable Social Login in Wagmi Apps</p>
-<p>🗝️ &nbsp; Plug and play user authentication</p>
-<p>🔒 &nbsp; Onboard dApp users via social, passwordless login</p>
-<p>🔒 &nbsp; Embedded Web3 Arcana wallet that can be branded and configured as per the application needs </p>
-<p>⛓️ &nbsp; Sign blockchain transactions, deploy and interact with smart contracts, manage native and custom tokens, view and manage NFTs, send and receive tokens</p>
-<p>⚙️ &nbsp; Configure blockchain transaction signing user experience using wallet visibility modes</p>
-
-# 🏗️ Installation
-
-To use the Auth-Wagmi SDK, devs must install and integrate the app with both, the Arcana Auth SDK as well as the Auth-Wagmi SDK.
-
-## npm
+## Install
 
 ```sh
 npm install --save @arcana/auth @arcana/auth-wagmi
@@ -41,38 +28,31 @@ npm install --save @arcana/auth @arcana/auth-wagmi
 
 ## yarn
 
-```sh
-yarn add @arcana/auth @arcana/auth-wagmi
+With plug n play connect modal
+
+```ts
+import { ArcanaConnector } from "@arcana/auth-wagmi"
+import { AuthProvider } from "@arcana/auth"
+
+const auth = new AuthProvider(`${arcana_client_id}`)
+const connector = ArcanaConnector({
+  auth,
+})
 ```
 
 ### CDN
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/@arcana/auth"></script>
-<script src="https://cdn.jsdelivr.net/npm/@arcana/auth-wagmi"></script>
+```ts
+import { ArcanaConnector } from "@arcana/auth-wagmi"
+import { AuthProvider } from "@arcana/auth"
+
+const auth = new AuthProvider(`${arcana_client_id}`)
+const connector = ArcanaConnector({
+  auth,
+  loginType: {
+    provider: "google"
+  } 
+})
 ```
 
-```html
-<script src="https://unpkg.com/@arcana/auth"></script>
-<script src="https://unpkg.com/@arcana/auth-wagmi"></script>
-```
-
-# 📋 Prerequisites
-
-Before you can start using the Arcana Auth SDK and Arcana Auth-Wagmi SDK in dApps, you need to register your dApp using [Arcana Developer Dashboard](https://dashboard.arcana.network/).
-
-A unique **Client ID** will be assigned to your dApp and you need the same to initialize the Arcana Auth SDK.
-
-# 📚 Documentation
-
-Check out [Arcana Network documentation](https://docs.arcana.network/) and Auth-Wagmi SDK [Usage Guide](./usage.md).  Also see [Auth-Wagmi Quick Start Guide](https://docs.arcana.network/quick-start/wagmi-quick-start.html).
-
-# 💡 Support
-
-For any support or integration-related queries, [contact us](https://docs.arcana.network/support). 
-
-# ℹ️ License
-
-Arcana Auth SDK is distributed under the [MIT License](https://fossa.com/blog/open-source-licenses-101-mit-license/).
-
-For details see [Arcana License](https://github.com/arcana-network/license/blob/main/LICENSE.md).
+For more details on connectors and integrating your app with Wagmi, see [Wagmi documentation](https://wagmi.sh/react/getting-started).
