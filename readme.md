@@ -26,9 +26,9 @@ For wagmi >= 2.0.0, use `@arcana/auth-wagmi@3.y.z`
 npm install --save @arcana/auth @arcana/auth-wagmi
 ```
 
-## yarn
+## Usage
 
-With plug n play connect modal
+### With plug n play UI
 
 ```ts
 import { ArcanaConnector } from "@arcana/auth-wagmi"
@@ -40,7 +40,7 @@ const connector = ArcanaConnector({
 })
 ```
 
-### CDN
+### With custom UI
 
 ```ts
 import { ArcanaConnector } from "@arcana/auth-wagmi"
