@@ -1,6 +1,9 @@
 {
+  "sidebarLinks": {
+        "Docs": "https://docs.arcana.network",
+  },
   "entryPoints": ["src/index.ts"],
-  "name": "Auth Wagmi SDK Reference Guide",
+  "name": "Auth Wagmi SDK Reference",
   "out": "htmldocs",
   "excludePrivate": true,
   "excludeProtected": true,
@@ -8,5 +11,13 @@
   "includeVersion": true,
   "footerDate": true,
   "footerTime": true,
-  "plugin": ["typedoc-plugin-extras"]
+  "hideGenerator": true,
+  "plugin": [
+    "typedoc-plugin-extras",
+    "typedoc-plugin-rename-defaults",
+    "typedoc-material-theme"
+  ],
+  "themeColor": "#ff4e9f",
+  "customFooterHtml": "<p> Copyright © <strong>Arcana Technologies Ltd. </strong>All rights reserved</p>",
+  "customCss": "./typedoc-theme/an_style.css"
 }

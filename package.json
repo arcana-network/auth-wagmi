@@ -15,7 +15,6 @@
     "build": "npm run clean && npm run build:esm && npm run build:types",
     "build:esm": "rollup -c",
     "build:watch": "tsc --watch",
-    "docs": "typedoc --options typedoc.json",
     "htmldocs": "typedoc --options typedochtml.json",
     "build:types": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit --skipLibCheck",
@@ -40,9 +39,12 @@
     "rimraf": "^3.0.2",
     "rollup": "2.79.1",
     "tslib": "^2.4.1",
-    "typedoc": "^0.25.13",
+    "typedoc": "^0.26.3",
     "typedoc-plugin-extras": "^3.0.0",
-    "typedoc-plugin-markdown": "^4.0.1",
+    "typedoc-plugin-markdown": "^4.2.3",
+    "typedoc-plugin-missing-exports": "^3.0.0",
+    "typedoc-plugin-rename-defaults": "^0.7.1",
+    "typedoc-material-theme": "^1.1.0",
     "typescript": "^5.4.5"
   },
   "peerDependencies": {
